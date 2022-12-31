@@ -49,7 +49,7 @@ uninstallfiles:
 # package files
 
 STUFF=italic-man.cygport LICENSE
-FILES=grotty iroff italic-man.7 postinstall preremove Makefile README $(STUFF)
+FILES=grotty iroff italic-man.7 postinstall preremove Makefile README.md $(STUFF)
 
 #############################################################################
 # cygwin packages
