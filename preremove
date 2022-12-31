@@ -1,0 +1,28 @@
+#! /bin/sh
+
+#############################################################################
+
+manconf=/etc/man_db.conf
+tmpconf=/tmp/.manconf
+
+delpat="/^DEFINE.*nroff.*iroff/"
+sed -e "2,$ b" -e "$delpat d" $manconf > $tmpconf && cp -f $tmpconf $manconf && rm -f $tmpconf
+
+exit 0
+
+#############################################################################
+
+bin=/usr/bin
+
+cd $bin
+
+# Removing grotty without removing grotty.exe is not tricky 
+# (unlike creating it, see the postinstall script); but let's be 
+# defensive about possible future changes of the Cygwin exe magic.
+# However, this installation and thus deinstallation is disabled.
+test -f grotty.exe.sav || ln grotty.exe grotty.exe.sav
+rm -f grotty # actual deinstallation: remove the wrapper script
+test -f grotty.exe || ln grotty.exe.sav grotty.exe
+
+#############################################################################
+# end

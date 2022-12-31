@@ -1,0 +1,66 @@
+#! /bin/dash
+
+# Permanent activation of italic-man in Cygwin.
+
+# The package provides /usr/share/italic-man/grotty which needs to be 
+# established as a substitute of /usr/bin/grotty within the `man` workflow.
+
+# There are several setup options to achieve this, see `man italic-man` 
+# or the comments in the grotty script.
+
+#############################################################################
+# We apply the Global configuration option here for reasons explained below.
+
+manconf=/etc/man_db.conf
+
+if grep "^DEFINE *nroff */usr/share/italic-man/iroff" $manconf
+then	exit 0
+fi
+
+tmpconf=/tmp/.manconf
+
+(
+ echo "DEFINE          nroff   /usr/share/italic-man/iroff -mandoc"
+ cat $manconf
+) > $tmpconf && cp -f $tmpconf $manconf && rm -f $tmpconf
+
+exit 0
+
+#############################################################################
+# The Global substitution option installs grotty in /usr/bin instead of 
+# the original grotty. In Cygwin, it is actually possible to have 
+# grotty (the new script) and grotty.exe (the original tool) reside 
+# in /usr/bin both side by side; however, it is tricky to get them 
+# installed there without removing /usr/bin/grotty.exe (due to 
+# Cygwin's exe magic which implicitly removes an exe file in some cases).
+# Also this tricky installation is spoiled when updating the groff package.
+# Therefore, this installation is disabled.
+
+lib=/usr/share/italic-man
+bin=/usr/bin
+
+cd $bin
+cp $lib/grotty grotty.sh
+
+# keep around backup copies for restoration in case of exe magic destruction
+keep_grotty_sh=true		# keep grotty script as grotty.sh
+keep_grotty_exe_sav=true	# keep original grotty as grotty.exe.sav
+
+if $keep_grotty_sh
+then
+	mv grotty.exe grotty.exe.sav	# save grotty.exe
+	ln grotty.sh grotty		# grotty.exe vanishes
+else
+	ln grotty.exe grotty.exe.sav	# save grotty.exe
+	mv grotty.sh grotty		# grotty.exe vanishes
+fi
+
+if $keep_grotty_exe_sav
+then
+	ln grotty.exe.sav grotty.exe	# restore grotty.exe, keep backup
+else
+	mv grotty.exe.sav grotty.exe	# restore grotty.exe
+fi
+
+#############################################################################
+# end

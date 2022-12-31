@@ -1,0 +1,13 @@
+#! /bin/sh
+
+# This script can be defined in /etc/man_db.conf as a 
+# replacement wrapper for nroff (uncommented, i.e. without '#'):
+#DEFINE  	nroff	iroff -mandoc
+#	or
+#DEFINE  	nroff	/usr/share/italic-man/iroff -mandoc
+# and would then redirect the invocation of grotty to the 
+# replacement wrapper for grotty, 
+# to be installed in the same directory as this script.
+
+GROFF_BIN_PATH=`dirname $0` nroff "$@"
+

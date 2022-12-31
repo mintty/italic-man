@@ -1,0 +1,156 @@
+#! /bin/sh
+
+# This wrapper script for `grotty` can be used to inject an option to 
+# `grotty` to enable italic display.
+# It is needed because the invocation of `grotty` is hard-coded in multiple 
+# device configuration files of `nroff` (`groff`) which is used by `man`.
+
+# There are a few ways to deploy this wrapper and enforce its invocation:
+# 1. Local/personal installation
+#	put this script somewhere, e.g. into $HOME/bin
+#	configure your environment:
+#	export GROFF_BIN_PATH=$HOME/bin
+# 2. Global configuration
+#	install this wrapper and an additional script `iroff` in your PATH
+#	or in a package location in /usr/share
+#	(iroff invokes: GROFF_BIN_PATH=`dirname $0` nroff "$@")
+#	configure /etc/man_db.conf to use that script:
+#	DEFINE  	nroff 	iroff -mandoc
+#	or
+#	DEFINE  	nroff 	/usr/share/italic-man/iroff -mandoc
+# 3. Global substitution (cygwin)
+#	install this wrapper into /usr/bin, alongside grotty.exe;
+#	warning: it's a bit tricky to do this without deleting grotty.exe
+#	(due to cygwin's exe magic);
+#	also this installation will be spoiled on package updates of groff
+# 4. Global substitution (Linux/Unix)
+#	rename /usr/bin/grotty to /usr/bin/grotty.exe,
+#	install this wrapper into /usr/bin, alongside grotty.exe
+
+#############################################################################
+# Determine terminal type to decide whether to use italic or not;
+# in terminals not supporting italic, this option would be counter-productive
+# or even fatal; e.g. xterm without proper italic font configuration will
+# not look good with italics, rxvt-unicode may even hang if italic is selected
+
+query () {
+  echo -n "$*" > /dev/tty
+  dd < /dev/tty 2> /dev/null
+}
+
+terminal () {
+
+case "$BASH" in
+?*)	# try simplified query as suggested by Brian Inglis:
+	# https://github.com/mintty/mintty/issues/776#issuecomment-475761566
+	read -s -dc -p $'\E[>c' da < /dev/tty 2> /dev/tty
+	da=${da##$'\E'[>}
+	set - ${da//;/ }
+	;;
+*)	# other shells do not have flexible read and string operations
+	# so it's a bit more tricky...
+	test -t 0 && stty=`stty -g`
+	test -t 0 && stty raw -echo min 0 time 5
+	da=`query "[>c"`
+	test -t 0 && stty "$stty"
+	da=${da#??}
+	type="${da%%;*}"
+	rest="${da#*;}"
+	vers="${rest%%;*}"
+	set - $type $vers
+;;
+esac
+
+case "$1" in
+0)	t=VT100
+	case "$2" in
+	95)	t=tmux;;
+	115)	t=KDE-konsole;;
+	136)	t=PuTTY;;
+	304)	t=VT125;;
+	esac;;
+1)	t=VT220
+	case "$2" in
+	2)	t=openwin-xterm;;
+	96)	t=mlterm;;
+	304)	t=VT241/VT382;;
+	1115)	t=gnome-terminal;;
+	esac
+	if [ 0$2 -ge 2000 ]
+	then	t=gnome-terminal
+	fi
+	;;
+2)	t=VT240;;
+24)	t=VT320;;
+18)	t=VT330;;
+19)	t=VT340;;
+41)	t=VT420;;
+61)	t=VT510;;
+64)	t=VT520;;
+65)	t=VT525;;
+28)	t=DECterm;;
+67)	t=cygwin;;
+77)	t=mintty;;
+82)	t=rxvt;;
+83)	t=screen;;
+84)	t=tmux; set - $1 200;;
+85)	t=rxvt-unicode;;
+*)	t=unknown;;
+esac
+tt=$1
+v=$2
+fw=$3
+
+}
+
+#############################################################################
+# Terminal type reporting script:
+# If this script is installed by a name containing "terminal",
+# it does not invoke grotty but just reports the detected terminal type
+case "$0" in
+*terminal*)
+	terminal
+	echo $tt $t $v $fw
+	exit;;
+esac
+
+#############################################################################
+# Decide whether to use italic, based on terminal ($t), version ($v)
+# and maybe configuration ($ITALIC_TERMINALS, $ITALIC_MAN)
+checkproc () {
+
+case "$t" in
+mintty)		test "0$v" -ge 20003 && i=-i;;
+KDE-konsole)	# since KDE 4.11, not distinguished by device attributes
+		i=-i;;
+rxvt-unicode)	# since 3.8
+		case "$v" in
+		?????)	test "0$v" -ge 30800 && i=-i;;
+		*)	i=-i;;
+		esac;;
+xterm)		test "0$v" -ge 305 && i=-i;;
+esac
+
+case ":$ITALIC_TERMINALS:" in
+*:$t:*)		i=-i;;
+esac
+
+}
+
+i=
+case "$ITALIC_MAN" in
+0|false)	i=;;
+1|true)		i=-i;;
+*)	# check italic support by querying the terminal
+	terminal
+	checkproc
+	;;
+esac
+
+# invoke grotty with optional italic option
+if type grotty.exe > /dev/null 2> /dev/null
+then	# cygwin
+	grotty.exe $i "$@"
+else	PATH="/usr/bin:/bin:$PATH"
+	grotty $i "$@"
+fi

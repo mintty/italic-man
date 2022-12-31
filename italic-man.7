@@ -1,0 +1,104 @@
+.\" italic-man man page
+.\"
+.\" This 'man' page is Copyright 2016 Thomas Wolff
+.\"
+.\" You may distribute, use, and modify this man page under the terms
+.\" of the GNU Free Documentation License (GFDL), Version 1.3,
+.\" 3 November 2008 (or later) as specified.
+.TH italic-man 7 italic-man
+
+.ad l
+
+.SH NAME
+
+italic-man \(en Support for italic display in manual pages
+
+.SH SYNOPSIS
+
+\fB/usr/share/italic-man/iroff\fP -mandoc ...
+.br
+\fBGROFF_BIN_PATH=/usr/share/italic-man\fP nroff ...
+.br
+\fBgrotty\fP ...
+
+.SH DESCRIPTION
+
+The \fIitalic-man\fP wrapper scripts enable italic display in manual pages 
+(where italic is specified in the page) in terminals supporting italic mode.
+
+.SH USAGE
+
+The scripts are invoked implicitly within the workflow of \fIman\fP.
+They detect the terminal type using a device attributes request.
+Italic support is enabled for mintty (from version 2.0.3), 
+KDE-konsole, rxvt-unicode (from version 3.8), xterm (from version 305).
+
+.SH SETUP
+
+There are a few ways to activate the \fIitalic-man\fP wrapper scripts 
+\fIgrotty\fP and \fIiroff\fP.
+.SS Local/personal setup
+Let the environment variable \fBGROFF_BIN_PATH\fP point to a directory 
+where the scripts \fIgrotty\fP and \fIiroff\fP are installed, e.g.:
+.br
+Configure your environment:
+.br
+	export GROFF_BIN_PATH=/usr/share/italic-man
+.SS Global configuration
+Install the scripts in a location contained in the global PATH or use them in 
+their installation directory \fI/usr/share/italic-man\fP.
+.br
+Configure \fI/etc/man_db.conf\fP to use the \fIiroff\fP script:
+.br
+	DEFINE  	nroff 	iroff -mandoc
+.br
+or
+.br
+	DEFINE  	nroff 	/usr/share/italic-man/iroff -mandoc
+.SS Global substitution (Cygwin)
+Install the \fIgrotty\fP script into /usr/bin, alongside grotty.exe.
+.br
+WARNING: It's a bit tricky to do this without deleting grotty.exe
+(due to cygwin's exe magic); see the \fIpostinstall\fP script of the package.
+.br
+Also note that this tricky installation is spoiled when the \fIgroff\fP 
+package gets updated.
+.SS Global substitution (Linux/Unix)
+Rename /usr/bin/grotty to /usr/bin/grotty.exe.
+.br
+Install the \fIgrotty\fP script into /usr/bin, alongside grotty.exe.
+.br
+Note that this installation is spoiled when the \fIgroff\fP package 
+gets updated.
+.SS Terminal type reporting script
+The \fIgrotty\fP script can also be installed under a name containing 
+"terminal" which then reports the detected terminal type only.
+
+.SH ENVIRONMENT VARIABLES
+
+.TP
+\fBITALIC_MAN\fP
+Values 0 or 1, respectively, disable or enable italic support in man 
+pages independently of the actual terminal. Terminal detection is skipped.
+
+.TP
+\fBITALIC_TERMINALS\fP
+A colon-separated list of terminal types; if the terminal type detected 
+is among them, italic support is enabled (not distinguishing versions).
+
+.TP
+\fBGROFF_BIN_PATH\fP
+Directory where the \fIgrotty\fP script of the italic-man package is 
+located, typically \fIGROFF_BIN_PATH=/usr/share/italic-man\fP.
+Optional user setting to enable italic-man if it is not configured globally.
+
+.SH LIMITATIONS
+
+If xterm uses bitmap fonts and no properly matching italic bitmap font 
+is configured, the visual result may be unsatisfying.
+With rxvt-unicode, selection of italic fonts was sometimes observed to stall.
+
+.SH AUTHOR
+
+Thomas Wolff
+
