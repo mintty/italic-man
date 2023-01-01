@@ -7,7 +7,9 @@ The italic-man wrapper scripts `grotty` and `iroff` enable italic display
 in manual pages (where italic is specified in the page) 
 in terminals supporting italic mode.
 
-The scripts are invoked implicitly within the workflow of man.
+<img width=60% align=right src=italic-man.png>
+
+The scripts are invoked implicitly within the workflow of `man`.
 They detect the terminal type using a device attributes request. 
 Italic support is enabled for mintty (from version 2.0.3), KDE-konsole, 
 rxvt-unicode (from version 3.8), xterm (from version 305).
