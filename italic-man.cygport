@@ -1,0 +1,31 @@
+NAME=italic-man
+VERSION=1.0
+RELEASE=1
+ARCH=noarch
+
+SUMMARY="Enabling italic display in manual pages"
+CATEGORY="Utils Doc"
+HOMEPAGE=https://github.com/mintty/italic-man
+DESCRIPTION="italic-man installs two scripts and hooks them into the workflow of the 'man' command so that the italic attribute of manual pages is actually displayed as italics in terminals that support it."
+LICENSE="GNU GPL V3"
+
+SRC_URI=https://github.com/mintty/$NAME/archive/$VERSION/$NAME-$VERSION.tar.gz
+
+SRC_DIR=.
+
+src_compile() {
+    :
+}
+
+src_install() {
+    cd $S/$NAME-$VERSION
+    doman italic-man.7
+    insinto /usr/share/${NAME}
+    doins grotty iroff
+    # configuration in /etc/man_db.conf shall be left up to man-db itself
+    #insinto /etc/postinstall
+    #newins postinstall ${NAME}.sh
+    #newins postinstall zp_${NAME}.sh
+    #insinto /etc/preremove
+    #newins preremove ${NAME}.sh
+}

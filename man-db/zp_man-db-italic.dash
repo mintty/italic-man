@@ -1,0 +1,47 @@
+#! /bin/dash
+
+# Hook italic-man package into man-db configuration.
+
+# The italic-man package provides /usr/share/italic-man/grotty which 
+# needs to be established as a substitute of /usr/bin/grotty within 
+# the `man` workflow.
+
+# There are several setup options to achieve this, see `man italic-man` 
+# or the comments in the grotty script.
+
+# This is provided as a postinstall script for man-db rather than for 
+# italic-man itself to consider concerns about postinstall from one 
+# package affecting another, and possibly raising undesired dependencies.
+
+#############################################################################
+# This postinstall script uses the option to hook the script 
+# /usr/share/italic-man/iroff from italic-man into the man-db configuration.
+
+manconf=/etc/man_db.conf
+tmpconf=/tmp/.manconf
+
+if [ -x /usr/share/italic-man/iroff ]
+then
+    # enable italic-man
+    if grep "^DEFINE *nroff */usr/share/italic-man/iroff" $manconf
+    then
+	exit 0
+    else
+	(
+	 echo "DEFINE          nroff   /usr/share/italic-man/iroff -mandoc"
+	 cat $manconf
+	) > $tmpconf
+    fi
+else
+    # disable italic-man
+    if grep "^DEFINE *nroff */usr/share/italic-man/iroff" $manconf
+    then
+	grep -v "^DEFINE *nroff */usr/share/italic-man/iroff" $manconf > $tmpconf
+    else
+	exit 0
+    fi
+fi &&
+cp -f $tmpconf $manconf && rm -f $tmpconf
+
+#############################################################################
+# end
